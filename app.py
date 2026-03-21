@@ -9,17 +9,20 @@ import uuid
 
 import anthropic
 from anthropic.lib.tools.mcp import async_mcp_tool
+from anthropic.types.beta import BetaMessageParam
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 from mcp import ClientSession
 from mcp.client.streamable_http import streamable_http_client
 
 load_dotenv()
 
 app = Flask(__name__)
+CORS(app)
 
 # In-memory session store: session_id -> list of messages
-sessions: dict[str, list[dict]] = {}
+sessions: dict[str, list[BetaMessageParam]] = {}
 
 DICE_MCP_URL = "https://mcp.dice.com/mcp"
 MODEL = "claude-opus-4-6"
@@ -42,7 +45,7 @@ Keep the conversation friendly and focused on helping them land their next role.
 """
 
 
-async def _process_message(messages: list[dict]) -> str:
+async def _process_message(messages: list[BetaMessageParam]) -> str:
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
         raise ValueError("ANTHROPIC_API_KEY is not set")
